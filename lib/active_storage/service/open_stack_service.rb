@@ -16,6 +16,7 @@ module ActiveStorage
 
     def upload(key, io, checksum: nil)
       instrument :upload, key: key, checksum: checksum do
+        checksum ||= ActiveStorage::Blob.new.send(:compute_checksum_in_chunks, io)
         params = {
           "Content-Type" => guess_content_type(io),
           "ETag" => convert_base64digest_to_hexdigest(checksum)
@@ -80,7 +81,7 @@ module ActiveStorage
     def url(key, expires_in:, disposition:, filename:, **)
       instrument :url, key: key do |payload|
         expire_at = unix_timestamp_expires_at(expires_in)
-        generated_url = client.get_object_https_url(container, key, expire_at) 
+        generated_url = client.get_object_https_url(container, key, expire_at)
         generated_url += "&inline" if (disposition.to_s != 'attachment')
         generated_url += "&filename=#{Fog::OpenStack.escape(filename.to_s)}" unless filename.nil?
         # unfortunally OpenStack Swift cannot overwrite the content type of an object via a temp url
