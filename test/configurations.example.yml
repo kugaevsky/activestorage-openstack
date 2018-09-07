@@ -1,6 +1,7 @@
 # openstack:
 #   service: OpenStack
 #   container:
+#   host:
 #   credentials:
 #     openstack_username:
 #     openstack_api_key:

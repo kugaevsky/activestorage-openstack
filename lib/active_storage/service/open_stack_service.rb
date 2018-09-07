@@ -2,9 +2,9 @@ require 'fog/openstack'
 
 module ActiveStorage
   class Service::OpenStackService < Service
-    attr_reader :client, :container
+    attr_reader :client, :container, :host
 
-    def initialize(container:, credentials:, connection_options: {})
+    def initialize(container:, credentials:, host: nil, connection_options: {})
       settings = if connection_options.present?
                    credentials.reverse_merge(connection_options: connection_options)
                  else
@@ -12,6 +12,7 @@ module ActiveStorage
                  end
       @client = Fog::Storage::OpenStack.new(settings)
       @container = Fog::OpenStack.escape(container)
+      @host = host
     end
 
     def upload(key, io, checksum: nil)
@@ -82,6 +83,7 @@ module ActiveStorage
       instrument :url, key: key do |payload|
         expire_at = unix_timestamp_expires_at(expires_in)
         generated_url = client.get_object_https_url(container, key, expire_at)
+        generated_url = [host, generated_url.match(%r{#{key}.*})].join('/') if host.present?
         generated_url += '&inline' if disposition.to_s != 'attachment'
         generated_url += "&filename=#{Fog::OpenStack.escape(filename.to_s)}" unless filename.nil?
         # unfortunately OpenStack Swift cannot overwrite the content type of an object via a temp url

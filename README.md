@@ -24,7 +24,8 @@ in `config/storage.yml`, in your Rails app, create an entry with the following k
 ```yaml
 dev_openstack:
   service: OpenStack
-  container: <container name> # Container name for your OpenStack provider
+  container: <container name>      # Container name for your OpenStack provider
+  host: https://assets.example.com # Optional, custom domain assigned to your container
   credentials:
     openstack_auth_url: <auth url>
     openstack_username: <username>

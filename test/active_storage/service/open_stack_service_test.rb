@@ -184,6 +184,21 @@ if SERVICE_CONFIGURATIONS[:openstack]
       end
     end
 
+    test "custom domain URL" do
+      config_with_host = SERVICE_CONFIGURATIONS.deep_merge(openstack: { host: 'example.com' })
+      service_with_custom_domain = ActiveStorage::Service.configure(:openstack, config_with_host)
+
+      @service.upload(FIXTURE_KEY, StringIO.new(FIXTURE_DATA))
+      url = service_with_custom_domain.url(FIXTURE_KEY, expires_in: 5.minutes,
+                                           disposition: :inline,
+                                           filename: ActiveStorage::Filename.new("avatar.png"))
+      assert_match 'example.com', url
+      assert_match "avatar.png", url
+      assert_match "inline", url
+    ensure
+      @service.delete(FIXTURE_KEY)
+    end
+
     def asset_metadata url, content_type: nil, content_length: nil, filename: nil, disposition: nil
       uri = URI.parse url
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
