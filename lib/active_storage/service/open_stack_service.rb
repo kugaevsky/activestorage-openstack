@@ -2,12 +2,14 @@ require 'fog/openstack'
 
 module ActiveStorage
   class Service::OpenStackService < Service
+    FOG_KLASS = Fog::Storage::OpenStack
+
     attr_reader :client, :container
 
     def initialize(container:, credentials:, connection_options: {})
       settings = credentials.reverse_merge(connection_options: connection_options)
 
-      @client = Fog::OpenStack::Storage.new(settings)
+      @client = FOG_KLASS.new(settings)
       @container = Fog::OpenStack.escape(container)
     end
 
@@ -52,7 +54,7 @@ module ActiveStorage
       instrument :delete, key: key do
         begin
           client.delete_object(container, key)
-        rescue Fog::OpenStack::Storage::NotFound
+        rescue FOG_KLASS::NotFound
           false
         end
       end
@@ -73,7 +75,7 @@ module ActiveStorage
         begin
           answer = object_for(key)
           payload[:exist] = answer.present?
-        rescue Fog::OpenStack::Storage::NotFound
+        rescue FOG_KLASS::NotFound
           payload[:exist] = false
         end
       end
@@ -122,7 +124,7 @@ module ActiveStorage
                          key,
                          'Content-Type' => content_type)
       true
-    rescue Fog::OpenStack::Storage::NotFound
+    rescue FOG_KLASS::NotFound
       false
     end
 
