@@ -14,7 +14,7 @@ module ActiveStorage
       @container = Fog::OpenStack.escape(container)
     end
 
-    def upload(key, io, checksum: nil)
+    def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil)
       instrument :upload, key: key, checksum: checksum do
         params = {
           "Content-Type" => guess_content_type(io),
